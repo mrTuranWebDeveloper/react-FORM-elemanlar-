@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
 
@@ -14,6 +14,13 @@ function App() {
     {key: 4, value: 'HTML'},
   ]
 
+  const levels = [
+    {key: 'beginner', value: 'Başlangıç'},
+    {key: 'Jr. Developer', value: 'Jr. Developer'},
+    {key: 'Sr. Developer', value: 'Sr. Developer'},
+  ]
+
+
   // const genders = ['Erkek', 'Kadın']
   const [name, setName] = useState('ömer')
   const [description, setDescription] = useState('')
@@ -26,6 +33,21 @@ function App() {
     {key:3, value: '3. kuralı kabul ediyorum'},
   ])
 
+  const [level, setLevel] = useState('')
+  const [avatar, setAvatar] = useState(false)
+  const [image, setImage] = useState(false)
+
+  useEffect(() => {
+    if (avatar) {
+    const fileReader = new FileReader()
+
+    fileReader.addEventListener('load', function() {
+      setImage(this.result)
+    })
+    fileReader.readAsDataURL(avatar)
+    }
+  }, [avatar])
+
   const checkRule = (key, checked) => {
     setRules(rules => rules.map(rule => {
       if (key === rule.key){
@@ -35,10 +57,20 @@ function App() {
     }))
   }
 
+  const submitHandle = () => {
+    const formData = new FormData()
+    formData.append('avatar', avatar)
+    formData.append('name', name)
+    fetch('https://google.com', {
+      method: 'POST',
+      body: formData
+    })
+  }
 
   const selectedGender = genders.find(g => g.key === gender)
+  const selectedLevel = levels.find(g => g.key === level)
   const selectedCategories = categoryList.filter(category => categories.includes(category.key))
-  const enabled = rules.every(rule => rule.checked)
+  const enabled = rules.every(rule => rule.checked) && avatar
 
   return (
     <>
@@ -89,7 +121,34 @@ function App() {
     <br />
 
     <prev>{JSON.stringify(rules, null, 2)}</prev>
-      <button enabled={!rules}>Devam Et</button>
+
+    <br />
+
+    {levels.map((l, index) => (
+      <label key={index}>
+        <input type="radio" value={l.key} checked={l.key === level} onChange={e => setLevel(e.target.value)}/>
+        {l.value}
+      </label>
+
+    ))} <br />
+
+    {JSON.stringify(selectedLevel)} <br />
+
+    <label>
+      <input type="file" onChange={e => setAvatar(e.target.files[0])}/>
+
+    </label>
+
+    <br />
+
+    {avatar && (
+      <>
+        <h3>{avatar.name}</h3>
+        {image && <img src={image} alt=""/>}
+      </>
+    )}
+
+      <button onClick={submitHandle} enabled={!rules}>Devam Et</button>
     </>
   );
 
